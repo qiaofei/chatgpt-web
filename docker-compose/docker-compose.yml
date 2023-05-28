@@ -8,31 +8,12 @@ services:
       - 3002:3002
     environment:
       # 二选一
-      OPENAI_API_KEY:
-      # 二选一
-      OPENAI_ACCESS_TOKEN:
-      # API接口地址，可选，设置 OPENAI_API_KEY 时可用
-      OPENAI_API_BASE_URL:
-      # API模型，可选，设置 OPENAI_API_KEY 时可用
-      OPENAI_API_MODEL:
-      # 反向代理，可选
-      API_REVERSE_PROXY:
-      # 访问权限密钥，可选
-      AUTH_SECRET_KEY:
+      OPENAI_ACCESS_TOKEN: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJ5dXJlbjEyMjlAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWV9LCJodHRwczovL2FwaS5vcGVuYWkuY29tL2F1dGgiOnsidXNlcl9pZCI6InVzZXItUTJnWTB3TFBpeVViMXNYc3l4ODBRbFg3In0sImlzcyI6Imh0dHBzOi8vYXV0aDAub3BlbmFpLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDEwMDk2NTAxMDgyNDcyOTM1MzM2OSIsImF1ZCI6WyJodHRwczovL2FwaS5vcGVuYWkuY29tL3YxIiwiaHR0cHM6Ly9vcGVuYWkub3BlbmFpLmF1dGgwYXBwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE2ODQ4NDgwOTIsImV4cCI6MTY4NjA1NzY5MiwiYXpwIjoiVGRKSWNiZTE2V29USHROOTVueXl3aDVFNHlPbzZJdEciLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIG1vZGVsLnJlYWQgbW9kZWwucmVxdWVzdCBvcmdhbml6YXRpb24ucmVhZCBvcmdhbml6YXRpb24ud3JpdGUifQ.vcl6ixYtHA2851iQ6T4fGubKuG4NygBTXLdUdQDug7TB661qysr8Yj2R3Asb2hdAkBwPp24FTvR9bpCmwLBcDeCTicQ84wtACGYIuIcxmu1iijyUy0HpvH7t5bmw6pm5uepJRU0g7wMtW5iIyZ4UiVT5FLDeHmLC3DBSciCR5afbtoLSsiNUja0WU_LOWSJ6VzEv-8xZGAyKqJRoNMUbJXoHNBb_dg-GKGJhmkdCTYuJFEbXohmcPt8YOcv0PXtPRABAM54mx8WAJADG55AI6XeLnshu8gDoR9AkFkDflJX9tly4fUKjmg1U3zv8gGCGTIC97qpWE3gqreM2uv2Ipw"
       # 每小时最大请求次数，可选，默认无限
       MAX_REQUEST_PER_HOUR: 0
       # 超时，单位毫秒，可选
       TIMEOUT_MS: 60000
       # Socks代理，可选，和 SOCKS_PROXY_PORT 一起时生效
-      SOCKS_PROXY_HOST:
-      # Socks代理端口，可选，和 SOCKS_PROXY_HOST 一起时生效
-      SOCKS_PROXY_PORT:
-      # Socks代理用户名，可选，和 SOCKS_PROXY_HOST & SOCKS_PROXY_PORT 一起时生效
-      SOCKS_PROXY_USERNAME:
-      # Socks代理密码，可选，和 SOCKS_PROXY_HOST & SOCKS_PROXY_PORT 一起时生效
-      SOCKS_PROXY_PASSWORD:
-      # HTTPS_PROXY 代理，可选
-      HTTPS_PROXY:
   nginx:
     container_name: nginx
     image: nginx:alpine

@@ -1,10 +1,27 @@
 <script setup lang='ts'>
 import type { DataTableColumns } from 'naive-ui'
 import { computed, h, ref, watch } from 'vue'
-import { NButton, NCard, NDataTable, NDivider, NInput, NList, NListItem, NModal, NPopconfirm, NSpace, NTabPane, NTabs, NThing, useMessage } from 'naive-ui'
+import {
+  NButton,
+  NCard,
+  NDataTable,
+  NDivider,
+  NInput,
+  NList,
+  NListItem,
+  NModal,
+  NPopconfirm,
+  NSpace,
+  NTabPane,
+  NTabs,
+  NThing,
+  useMessage,
+} from 'naive-ui'
 import PromptRecommend from '../../../assets/recommend.json'
 import { SvgIcon } from '..'
 import { usePromptStore } from '@/store'
+import { useselfPromptStore } from '@/store/modules/selfprompt'
+
 import { useBasicLayout } from '@/hooks/useBasicLayout'
 import { t } from '@/locales'
 
@@ -45,10 +62,12 @@ const searchValue = ref<string>('')
 const { isMobile } = useBasicLayout()
 
 const promptStore = usePromptStore()
+const selfPrompt = useselfPromptStore()
 
 // Prompt在线导入推荐List,根据部署者喜好进行修改(assets/recommend.json)
 const promptRecommendList = PromptRecommend
 const promptList = ref<any>(promptStore.promptList)
+const selfPromptList = ref<any>(selfPrompt.selfPromptList)
 
 // 用于添加修改的临时prompt参数
 const tempPromptKey = ref('')
@@ -61,12 +80,15 @@ const modalMode = ref('')
 const tempModifiedItem = ref<any>({})
 
 // 添加修改导入都使用一个Modal, 临时修改内容占用tempPromptKey,切换状态前先将内容都清楚
-const changeShowModal = (mode: 'add' | 'modify' | 'local_import', selected = { key: '', value: '' }) => {
-  if (mode === 'add') {
+const changeShowModal = (mode: 'add' | 'modify' | 'local_import' | 'addSelf' | 'modifySelf', selected = {
+  key: '',
+  value: '',
+}) => {
+  if (mode === 'add' || mode === 'addSelf') {
     tempPromptKey.value = ''
     tempPromptValue.value = ''
   }
-  else if (mode === 'modify') {
+  else if (mode === 'modify' || mode === 'modifySelf') {
     tempModifiedItem.value = { ...selected }
     tempPromptKey.value = selected.key
     tempPromptValue.value = selected.value
@@ -87,7 +109,7 @@ const setDownloadURL = (url: string) => {
 }
 
 // 控制 input 按钮
-const inputStatus = computed (() => tempPromptKey.value.trim().length < 1 || tempPromptValue.value.trim().length < 1)
+const inputStatus = computed(() => tempPromptKey.value.trim().length < 1 || tempPromptValue.value.trim().length < 1)
 
 // Prompt模板相关操作
 const addPromptTemplate = () => {
@@ -145,6 +167,75 @@ const deletePromptTemplate = (row: { key: string; value: string }) => {
 const clearPromptTemplate = () => {
   promptList.value = []
   message.success(t('common.clearSuccess'))
+}
+
+// Prompt模板相关操作
+const addSelfPromptTemplate = () => {
+  for (const i of selfPromptList.value) {
+    if (i.key === tempPromptKey.value) {
+      message.error(t('store.addRepeatTitleTips'))
+      return
+    }
+    if (i.value === tempPromptValue.value) {
+      message.error(t('store.addRepeatContentTips', { msg: tempPromptKey.value }))
+      return
+    }
+  }
+  selfPromptList.value.unshift({ key: tempPromptKey.value, value: tempPromptValue.value } as never)
+  message.success(t('common.addSuccess'))
+  changeShowModal('addSelf')
+}
+
+const modifySelfPromptTemplate = () => {
+  let index = 0
+
+  // 通过临时索引把待修改项摘出来
+  for (const i of selfPromptList.value) {
+    if (i.key === tempModifiedItem.value.key && i.value === tempModifiedItem.value.value)
+      break
+    index = index + 1
+  }
+
+  const tempList = selfPromptList.value.filter((_: any, i: number) => i !== index)
+
+  // 搜索有冲突的部分
+  for (const i of tempList) {
+    if (i.key === tempPromptKey.value) {
+      message.error(t('store.editRepeatTitleTips'))
+      return
+    }
+    if (i.value === tempPromptValue.value) {
+      message.error(t('store.editRepeatContentTips', { msg: i.key }))
+      return
+    }
+  }
+
+  selfPromptList.value = [{ key: tempPromptKey.value, value: tempPromptValue.value }, ...tempList] as never
+  message.success(t('common.editSuccess'))
+  changeShowModal('modifySelf')
+}
+
+const deleteSelfPromptTemplate = (row: { key: string; value: string }) => {
+  selfPromptList.value = [
+    ...selfPromptList.value.filter((item: { key: string; value: string }) => item.key !== row.key),
+  ] as never
+  message.success(t('common.deleteSuccess'))
+}
+
+const clearSelfPromptTemplate = () => {
+  selfPromptList.value = []
+  message.success(t('common.clearSuccess'))
+}
+
+const opPromp = () => {
+  if (modalMode.value === 'add')
+    addPromptTemplate()
+  else if (modalMode.value === 'addSelf')
+    addSelfPromptTemplate()
+  else if (modalMode.value === 'modify')
+    modifyPromptTemplate()
+  else if (modalMode.value === 'modifySelf')
+    modifySelfPromptTemplate()
 }
 
 const importPromptTemplate = (from = 'online') => {
@@ -252,6 +343,19 @@ const renderTemplate = () => {
   })
 }
 
+const renderTemplateSelf = () => {
+  const [keyLimit, valueLimit] = isMobile.value ? [10, 30] : [15, 50]
+
+  return selfPromptList.value.map((item: { key: string; value: string }) => {
+    return {
+      renderKey: item.key.length <= keyLimit ? item.key : `${item.key.substring(0, keyLimit)}...`,
+      renderValue: item.value.length <= valueLimit ? item.value : `${item.value.substring(0, valueLimit)}...`,
+      key: item.key,
+      value: item.value,
+    }
+  })
+}
+
 const pagination = computed(() => {
   const [pageSize, pageSlot] = isMobile.value ? [6, 5] : [7, 15]
   return {
@@ -306,10 +410,57 @@ const createColumns = (): DataTableColumns<DataProps> => {
 
 const columns = createColumns()
 
+const createSelfColumns = (): DataTableColumns<DataProps> => {
+  return [
+    {
+      title: t('store.title'),
+      key: 'renderKey',
+    },
+    {
+      title: t('store.description'),
+      key: 'renderValue',
+    },
+    {
+      title: t('common.action'),
+      key: 'actions',
+      width: 100,
+      align: 'center',
+      render(row) {
+        return h('div', { class: 'flex items-center flex-col gap-2' }, {
+          default: () => [h(
+            NButton,
+            {
+              tertiary: true,
+              size: 'small',
+              type: 'info',
+              onClick: () => changeShowModal('modifySelf', row),
+            },
+            { default: () => t('common.edit1') },
+          ),
+          h(
+            NButton,
+            {
+              tertiary: true,
+              size: 'small',
+              type: 'error',
+              onClick: () => deleteSelfPromptTemplate(row),
+            },
+            { default: () => t('common.delete1') },
+          ),
+          ],
+        })
+      },
+    },
+  ]
+}
+
+const selfColumns = createSelfColumns()
+
 watch(
-  () => promptList,
+  () => [promptList, selfPromptList],
   () => {
     promptStore.updatePromptList(promptList.value)
+    selfPrompt.updateselfPromptList(selfPromptList.value)
   },
   { deep: true },
 )
@@ -324,12 +475,73 @@ const dataSource = computed(() => {
   }
   return data
 })
+
+const selfDataSource = computed(() => {
+  const data = renderTemplateSelf()
+  const value = searchValue.value
+  if (value && value !== '') {
+    return data.filter((item: DataProps) => {
+      return item.renderKey.includes(value) || item.renderValue.includes(value)
+    })
+  }
+  return data
+})
 </script>
 
 <template>
   <NModal v-model:show="show" style="width: 90%; max-width: 900px;" preset="card">
     <div class="space-y-4">
       <NTabs type="segment">
+        <NTabPane name="self" :tab="$t('store.self')">
+          <div
+            class="flex gap-3 mb-4"
+            :class="[isMobile ? 'flex-col' : 'flex-row justify-between']"
+          >
+            <div class="flex items-center space-x-4">
+              <NButton
+                type="primary"
+                size="small"
+                @click="changeShowModal('addSelf')"
+              >
+                {{ $t('common.add') }}
+              </NButton>
+              <NPopconfirm @positive-click="clearSelfPromptTemplate">
+                <template #trigger>
+                  <NButton size="small">
+                    {{ $t('common.clear') }}
+                  </NButton>
+                </template>
+                {{ $t('store.clearStoreConfirm') }}
+              </NPopconfirm>
+            </div>
+            <div class="flex items-center">
+              <NInput v-model:value="searchValue" style="width: 100%" />
+            </div>
+          </div>
+          <NDataTable
+            v-if="!isMobile"
+            :max-height="400"
+            :columns="selfColumns"
+            :data="selfDataSource"
+            :pagination="pagination"
+            :bordered="false"
+          />
+          <NList v-if="isMobile" style="max-height: 400px; overflow-y: auto;">
+            <NListItem v-for="(item, index) of selfDataSource" :key="index">
+              <NThing :title="item.renderKey" :description="item.renderValue" />
+              <template #suffix>
+                <div class="flex flex-col items-center gap-2">
+                  <NButton tertiary size="small" type="info" @click="changeShowModal('modifySelf', item)">
+                    {{ t('common.edit1') }}
+                  </NButton>
+                  <NButton tertiary size="small" type="error" @click="deleteSelfPromptTemplate(item)">
+                    {{ t('common.delete1') }}
+                  </NButton>
+                </div>
+              </template>
+            </NListItem>
+          </NList>
+        </NTabPane>
         <NTabPane name="local" :tab="$t('store.local')">
           <div
             class="flex gap-3 mb-4"
@@ -446,7 +658,10 @@ const dataSource = computed(() => {
   </NModal>
 
   <NModal v-model:show="showModal" style="width: 90%; max-width: 600px;" preset="card">
-    <NSpace v-if="modalMode === 'add' || modalMode === 'modify'" vertical>
+    <NSpace
+      v-if="modalMode === 'add' || modalMode === 'modify' || modalMode === 'addSelf' || modalMode === 'modifySelf'"
+      vertical
+    >
       {{ t('store.title') }}
       <NInput v-model:value="tempPromptKey" />
       {{ t('store.description') }}
@@ -455,7 +670,7 @@ const dataSource = computed(() => {
         block
         type="primary"
         :disabled="inputStatus"
-        @click="() => { modalMode === 'add' ? addPromptTemplate() : modifyPromptTemplate() }"
+        @click="() => opPromp()"
       >
         {{ t('common.confirm') }}
       </NButton>

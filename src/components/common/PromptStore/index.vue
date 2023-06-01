@@ -80,14 +80,18 @@ const modalMode = ref('')
 const tempModifiedItem = ref<any>({})
 
 // 添加修改导入都使用一个Modal, 临时修改内容占用tempPromptKey,切换状态前先将内容都清楚
-const changeShowModal = (mode: 'add' | 'modify' | 'local_import' | 'addSelf' | 'modifySelf', selected = {
+const changeShowModal = (mode: 'add' | 'modify' | 'local_import' | 'addSelf' | 'modifySelf' | 'collect', selected = {
   key: '',
   value: '',
 }) => {
   if (mode === 'add' || mode === 'addSelf') {
     tempPromptKey.value = ''
     tempPromptValue.value = ''
-  }
+  }else if(mode === 'collect'){
+		tempPromptKey.value = selected.key
+		tempPromptValue.value = selected.value
+		mode = 'addSelf'
+	}
   else if (mode === 'modify' || mode === 'modifySelf') {
     tempModifiedItem.value = { ...selected }
     tempPromptKey.value = selected.key
@@ -387,9 +391,9 @@ const createColumns = (): DataTableColumns<DataProps> => {
               tertiary: true,
               size: 'small',
               type: 'info',
-              onClick: () => changeShowModal('modify', row),
+              onClick: () => changeShowModal('collect', row),
             },
-            { default: () => t('common.edit') },
+            { default: () => t('common.collect') },
           ),
           h(
             NButton,
@@ -435,7 +439,7 @@ const createSelfColumns = (): DataTableColumns<DataProps> => {
               type: 'info',
               onClick: () => changeShowModal('modifySelf', row),
             },
-            { default: () => t('common.edit1') },
+            { default: () => t('common.edit') },
           ),
           h(
             NButton,
@@ -445,7 +449,7 @@ const createSelfColumns = (): DataTableColumns<DataProps> => {
               type: 'error',
               onClick: () => deleteSelfPromptTemplate(row),
             },
-            { default: () => t('common.delete1') },
+            { default: () => t('common.delete') },
           ),
           ],
         })
@@ -594,8 +598,8 @@ const selfDataSource = computed(() => {
               <NThing :title="item.renderKey" :description="item.renderValue" />
               <template #suffix>
                 <div class="flex flex-col items-center gap-2">
-                  <NButton tertiary size="small" type="info" @click="changeShowModal('modify', item)">
-                    {{ t('common.edit') }}
+                  <NButton tertiary size="small" type="info" @click="changeShowModal('collect', item)">
+                    {{ t('common.collect') }}
                   </NButton>
                   <NButton tertiary size="small" type="error" @click="deletePromptTemplate(item)">
                     {{ t('common.delete') }}

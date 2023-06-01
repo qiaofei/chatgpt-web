@@ -3,10 +3,9 @@ export default {
     add: '添加',
     addSuccess: '添加成功',
     edit: '编辑',
-		edit1: '编辑1',
+		collect:'收藏',
     editSuccess: '编辑成功',
     delete: '删除',
-		delete1: '删除1',
     deleteSuccess: '删除成功',
     save: '保存',
     saveSuccess: '保存成功',
@@ -78,6 +77,7 @@ export default {
   },
   store: {
     siderButton: '提示词设置',
+
     self: '自定义',
     local: '本地',
     online: '在线',

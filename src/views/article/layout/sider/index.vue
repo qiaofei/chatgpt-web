@@ -8,7 +8,6 @@ import Footer from './Footer.vue'
 import { useAppStore, useChatStore } from '@/store'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
 import { PromptStore } from '@/components/common'
-
 const router = useRouter()
 
 const appStore = useAppStore()
@@ -19,6 +18,10 @@ const show = ref(false)
 
 const collapsed = computed(() => appStore.siderCollapsed)
 
+function goChat() {
+  router.push('/')
+}
+
 function handleAdd() {
   chatStore.addHistory({ title: 'New Chat', uuid: Date.now(), isEdit: false })
   if (isMobile.value)
@@ -27,10 +30,6 @@ function handleAdd() {
 
 function handleUpdateCollapsed() {
   appStore.setSiderCollapsed(!collapsed.value)
-}
-
-function goArticle() {
-  router.push('/article')
 }
 
 const getMobileClass = computed<CSSProperties>(() => {
@@ -90,8 +89,8 @@ watch(
           <NButton block @click="show = true">
             {{ $t('store.siderButton') }}
           </NButton>
-          <NButton block @click="goArticle">
-            {{ $t('common.goArticle') }}
+          <NButton block @click="goChat">
+            {{ $t('common.goChat') }}
           </NButton>
         </div>
       </main>

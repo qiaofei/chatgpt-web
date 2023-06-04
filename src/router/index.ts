@@ -3,6 +3,7 @@ import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { setupPageGuard } from './permission'
 import { ChatLayout } from '@/views/chat/layout'
+import { ArticleLayout } from '@/views/article/layout'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -15,6 +16,20 @@ const routes: RouteRecordRaw[] = [
         path: '/chat/:uuid?',
         name: 'Chat',
         component: () => import('@/views/chat/index.vue'),
+      },
+    ],
+  },
+
+  {
+    path: '/article',
+    name: 'Article',
+    component: ArticleLayout,
+    redirect: '/article',
+    children: [
+      {
+        path: '/article/:uuid?',
+        name: 'Article',
+        component: () => import('@/views/article/index.vue'),
       },
     ],
   },
